@@ -37,9 +37,7 @@ module RedmineCharts
     end
 
     def self.propose_range_for_two_dates(start_date, end_date)
-      diff = diff(format_day(start_date), format_day(end_date), @@days_per_year) + 1
-      offset = ((Time.now - end_date.to_time)/@@seconds_per_day).floor
-      { :range => :days, :offset => offset, :limit => diff}
+      { :range => :days, :offset => (Date.today - end_date).to_i, :limit => (end_date - start_date).to_i + 1 }
     end
 
     def self.propose_range(start_date)
@@ -123,6 +121,17 @@ module RedmineCharts
       date.strftime('%Y%j')
     end
 
+    def self.format_date_with_unit(date, unit)
+      case unit
+      when :days
+        format_day(date)
+      when :weeks
+        format_week(date)
+      when :months
+        format_month(date)
+      end
+    end
+
     def self.current_week
       format_week(Time.now)
     end
@@ -136,21 +145,26 @@ module RedmineCharts
     end
 
     def self.date_from_week(year_and_week_of_year)
-      week_of_year = year_and_week_of_year.to_s[4...7].to_i
-      year = year_and_week_of_year.to_s[0...4].to_i
-      Time.mktime(year) + (week_of_year-1).weeks
+      Date.strptime(year_and_week_of_year, "%Y0%W")
     end
 
     def self.date_from_month(year_and_month)
-      month = year_and_month.to_s[4...7].to_i
-      year = year_and_month.to_s[0...4].to_i
-      Time.mktime(year,month)
+      Date.strptime(year_and_month, "%Y0%m")
     end
 
     def self.date_from_day(year_and_day_of_year)
-      day_of_year = year_and_day_of_year.to_s[4...7].to_i
-      year = year_and_day_of_year.to_s[0...4].to_i
-      Time.mktime(year) + (day_of_year-1).days
+      Date.strptime(year_and_day_of_year, "%Y%j")
+    end
+
+    def self.date_from_unit(date_string, unit)
+      case unit
+      when :days
+        date_from_day(date_string)
+      when :weeks
+        date_from_week(date_string)
+      when :months
+        date_from_month(date_string)
+      end
     end
 
     def self.diff(from, to, per_year)
@@ -165,24 +179,11 @@ module RedmineCharts
     end
 
     def self.subtract_week(current, offset)
-      year = current[0..3].to_i
-      week_of_year = current[4..6].to_i
+      date = Date.strptime(current, "%Y0%W") - offset.weeks
 
-      year -= offset/@@weeks_per_year
-      offset %= @@weeks_per_year
+      key = "%d%03d" % [date.year, date.strftime("%W").to_i]
 
-      if week_of_year > offset
-        week_of_year -= offset
-      else
-        year -= 1
-        week_of_year = @@weeks_per_year + week_of_year - offset
-      end
-
-      key = "%d%03d" % [year, week_of_year]
-
-      date = date_from_week(key)
-
-      date -= (date.strftime("%w").to_i - 1).days
+      date -= ((date.strftime("%w").to_i + 6) % 7).days
 
       day_from = date.strftime("%d").to_i
       month_from = date.strftime("%b")
@@ -206,22 +207,11 @@ module RedmineCharts
     end
 
     def self.subtract_day(current, offset)
-      year = current[0..3].to_i
-      day_of_year = current[4..6].to_i
+      date = Date.strptime(current, "%Y%j") - offset
 
-      year -= offset/@@days_per_year
-      offset %= @@days_per_year
+      key = "%d%03d" % [date.year, date.yday]
 
-      if day_of_year > offset
-        day_of_year -= offset
-      else
-        year -= 1
-        day_of_year = @@days_per_year + day_of_year - offset
-      end
-
-      key = "%d%03d" % [year, day_of_year]
-
-      [key, date_from_day(key).strftime("%d %b %y")]
+      [key, date.strftime("%d %b %y")]
     end
 
   end
