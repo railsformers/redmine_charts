@@ -45,11 +45,7 @@ cs:
   charts_burndown_group_estimated: "odhadovaná doba"
   charts_burndown_group_logged: "zapsaný čas"
   charts_burndown_group_remaining: "zbývající čas"
-<<<<<<< HEAD
   charts_burndown_group_predicted: "předpoklad (zbývá + zapsáno) hodin"
-=======
-  charts_burndown_group_predicted: "předpoklad (zbává + zapsáno) hodin"
->>>>>>> 82dbe57a6f5a882831911c6b2933013591dbd101
   charts_burndown_help: "Časová křivka s předpokládanými, zapsanými a zbývajícími časy pro dané seskupení a za daných podmínek."
 
   charts_deviation_x: "úkolů"
